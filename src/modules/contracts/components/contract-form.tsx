@@ -57,6 +57,8 @@ export function ContractForm({
       endDate: new Date(new Date().setFullYear(new Date().getFullYear() + 1)).toISOString().slice(0, 10),
       amount: 48000000,
       status: "pending",
+      durationMonths: 12,
+      additionalTerms: "",
       ...initialValues
     }
   });
@@ -64,6 +66,7 @@ export function ContractForm({
   const amount = form.watch("amount");
   const tenantId = form.watch("tenantId");
   const status = form.watch("status") ?? "pending";
+  const durationMonths = form.watch("durationMonths") ?? 12;
   const selectedTenant = tenants.data?.data.find((tenant) => tenant.id === tenantId);
   const selectedOwnerName = selectedTenant?.ownerName ?? "Chọn owner";
   const selectedOwnerEmail = selectedTenant?.ownerEmail ?? "Chưa chọn owner";
@@ -170,10 +173,12 @@ export function ContractForm({
               <FieldLabel>Thời hạn (tháng)</FieldLabel>
               <Select
                 className={inputClassName}
-                defaultValue="12"
+                value={String(durationMonths)}
                 onChange={(event) => {
+                  const months = Number(event.target.value);
+                  form.setValue("durationMonths", months, { shouldValidate: true });
                   const startDate = new Date(form.getValues("startDate"));
-                  startDate.setMonth(startDate.getMonth() + Number(event.target.value));
+                  startDate.setMonth(startDate.getMonth() + months);
                   form.setValue("endDate", startDate.toISOString().slice(0, 10), { shouldValidate: true });
                 }}
               >
@@ -212,6 +217,7 @@ export function ContractForm({
           <textarea
             className="min-h-32 w-full resize-none border border-dashed border-primary bg-slate-50 p-4 text-sm outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-primary/30 dark:bg-slate-900"
             placeholder="Nhập các thỏa thuận riêng hoặc ưu đãi đặc biệt dành cho đối tác..."
+            {...form.register("additionalTerms")}
           />
         </section>
 
@@ -277,7 +283,7 @@ export function ContractForm({
             </div>
             <div className="rounded-lg bg-slate-50 p-4 dark:bg-slate-900">
               <p className="font-bold text-slate-950 dark:text-white">Giá trị hợp đồng: {formattedAmount} VNĐ</p>
-              <p className="mt-1 text-slate-500">Thời hạn: 24 tháng kể từ ngày ký.</p>
+              <p className="mt-1 text-slate-500">Thời hạn: {durationMonths} tháng kể từ ngày ký.</p>
             </div>
           </div>
         </div>

@@ -9,11 +9,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/common/status-badge";
 import { useDeleteEmployee, useEmployee } from "@/modules/employees/api/employee.queries";
+import { useTenant } from "@/modules/tenants/api/tenant.queries";
 
 export default function EmployeeDetailPage() {
   const params = useParams<{ employeeId: string }>();
   const router = useRouter();
   const employee = useEmployee(params.employeeId);
+  const tenant = useTenant(employee.data?.tenantId ?? "");
   const deleteEmployee = useDeleteEmployee();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
@@ -53,7 +55,7 @@ export default function EmployeeDetailPage() {
       <Card>
         <CardHeader><CardTitle>{employee.data?.fullName ?? "Loading..."}</CardTitle></CardHeader>
         <CardContent className="grid gap-3 text-sm md:grid-cols-2">
-          <p>Tenant ID: {employee.data?.tenantId}</p>
+          <p>Cửa hàng: {tenant.data ? `${tenant.data.name} (${tenant.data.ownerName})` : employee.data?.tenantId}</p>
           <p>Email: {employee.data?.email}</p>
           <p>Role: {employee.data?.role}</p>
           <p>Department: {employee.data?.department}</p>

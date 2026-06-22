@@ -7,8 +7,14 @@ export function getAccessToken() {
   if (typeof window === "undefined") {
     return null;
   }
-
   return window.localStorage.getItem(accessTokenKey);
+}
+
+export function getRefreshToken() {
+  if (typeof window === "undefined") {
+    return null;
+  }
+  return window.localStorage.getItem(refreshTokenKey);
 }
 
 export function setAuthSession(data: AuthTokensDto) {

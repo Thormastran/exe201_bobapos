@@ -22,5 +22,6 @@ export const forgotPasswordSchema = z.object({
 });
 
 export const verifyAccessSchema = z.object({
+  email: z.string().email(),
   code: z.string().min(6).max(8)
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { startAuthentication, type PublicKeyCredentialRequestOptionsJSON } from "@simplewebauthn/browser";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowRight, Eye, KeyRound, LockKeyhole, Mail } from "lucide-react";
 import Link from "next/link";
@@ -19,6 +20,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export function LoginForm() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
   const setUser = useAuthStore((state) => state.setUser);
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -33,6 +35,44 @@ export function LoginForm() {
       router.push(redirect ?? "/dashboard");
     }
   });
+
+  async function handleSso(provider: "google" | "microsoft") {
+    setAuthError(null);
+    const email = form.getValues("email");
+    if (!email) {
+      setAuthError("Nhập email trước khi dùng SSO.");
+      return;
+    }
+    try {
+      const data = await authApi.sso({ provider, email });
+      setAuthSession(data);
+      setUser(data.user);
+      router.push("/dashboard");
+    } catch {
+      setAuthError("SSO thất bại. Email chưa được liên kết với tài khoản.");
+    }
+  }
+
+  async function handlePasskey() {
+    setAuthError(null);
+    const email = form.getValues("email");
+    if (!email) {
+      setAuthError("Nhập email trước khi dùng Passkey.");
+      return;
+    }
+    try {
+      const options = await authApi.passkeyLoginOptions(email);
+      const response = await startAuthentication({
+        optionsJSON: options as unknown as PublicKeyCredentialRequestOptionsJSON
+      });
+      const data = await authApi.passkeyLogin(email, response as unknown as Record<string, unknown>);
+      setAuthSession(data);
+      setUser(data.user);
+      router.push("/dashboard");
+    } catch {
+      setAuthError("Passkey không khả dụng. Hãy đăng ký passkey trong Settings trước.");
+    }
+  }
 
   return (
     <form className="w-full max-w-[430px]" onSubmit={form.handleSubmit((values) => login.mutate(values))}>
@@ -50,7 +90,7 @@ export function LoginForm() {
             <input
               id="email"
               type="email"
-              placeholder="executive@teaops.com"
+              placeholder="admin@teaflow.io"
               className="h-12 w-full border-0 border-b-2 border-[#c7cbd7] bg-transparent pr-10 text-base text-[#111d2f] outline-none placeholder:text-[#b7bac4] focus:border-primary"
               {...form.register("email")}
             />
@@ -90,10 +130,7 @@ export function LoginForm() {
 
       <div className="mt-8 flex items-center justify-between gap-4 text-sm font-semibold text-[#555c6b]">
         <label className="flex items-center gap-3">
-          <input
-            type="checkbox"
-            className="h-5 w-5 rounded border-[#c7cbd7] bg-[#f3f6fc] text-primary accent-primary"
-          />
+          <input type="checkbox" className="h-5 w-5 rounded border-[#c7cbd7] bg-[#f3f6fc] text-primary accent-primary" />
           Lưu đăng nhập
         </label>
         <Link href="/forgot-password" className="text-primary hover:underline">
@@ -106,10 +143,9 @@ export function LoginForm() {
         <ArrowRight className="h-6 w-6" />
       </Button>
       {login.isError ? (
-        <p className="mt-3 text-center text-sm font-semibold text-destructive">
-          Email hoặc mật khẩu không đúng.
-        </p>
+        <p className="mt-3 text-center text-sm font-semibold text-destructive">Email hoặc mật khẩu không đúng.</p>
       ) : null}
+      {authError ? <p className="mt-3 text-center text-sm font-semibold text-destructive">{authError}</p> : null}
 
       <div className="mt-20 border-t border-[#eef1f6] pt-10">
         <p className="text-center text-xs font-extrabold uppercase tracking-[0.18em] text-[#8a90a0]">
@@ -118,19 +154,29 @@ export function LoginForm() {
         <div className="mt-7 grid grid-cols-2 gap-4">
           <button
             type="button"
+            onClick={() => handleSso("google")}
             className="flex h-14 items-center justify-center gap-3 rounded border border-[#e4e8f0] bg-white text-sm font-bold text-[#4f5564] hover:border-primary hover:text-primary"
           >
             <LockKeyhole className="h-5 w-5" />
-            SSO
+            Google SSO
           </button>
           <button
             type="button"
+            onClick={() => handlePasskey()}
             className="flex h-14 items-center justify-center gap-3 rounded border border-[#e4e8f0] bg-white text-sm font-bold text-[#4f5564] hover:border-primary hover:text-primary"
           >
             <KeyRound className="h-5 w-5" />
             Passkey
           </button>
         </div>
+        <button
+          type="button"
+          onClick={() => handleSso("microsoft")}
+          className="mt-4 flex h-12 w-full items-center justify-center gap-3 rounded border border-[#e4e8f0] bg-white text-sm font-bold text-[#4f5564] hover:border-primary hover:text-primary"
+        >
+          <LockKeyhole className="h-5 w-5" />
+          Microsoft SSO
+        </button>
         <p className="mt-9 text-center text-sm text-[#555c6b]">
           Bạn mới sử dụng nền tảng này?{" "}
           <Link href="/register" className="text-primary hover:underline">

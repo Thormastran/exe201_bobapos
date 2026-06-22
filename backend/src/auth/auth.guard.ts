@@ -26,7 +26,8 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException("Missing bearer token");
     }
 
-    request.user = this.tokenService.verify(token);
+    const payload = this.tokenService.verify(token, "access");
+    request.user = payload;
     return true;
   }
 }

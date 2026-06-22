@@ -1,6 +1,7 @@
 import axios from "axios";
 import { env } from "@/config/env";
-import { accessTokenKey, clearAuthSession } from "@/modules/auth/lib/auth-session";
+import { clearAuthSession, getAccessToken } from "@/modules/auth/lib/auth-session";
+import { refreshAuthTokens } from "@/modules/auth/lib/refresh-auth";
 
 export const httpClient = axios.create({
   baseURL: env.apiBaseUrl,
@@ -10,12 +11,21 @@ export const httpClient = axios.create({
   }
 });
 
+let refreshPromise: Promise<string | null> | null = null;
+
+function isAuthEndpoint(url?: string) {
+  if (!url) return false;
+  return ["/auth/login", "/auth/register", "/auth/refresh", "/auth/sso", "/auth/passkey"].some((path) =>
+    url.includes(path)
+  );
+}
+
 httpClient.interceptors.request.use((config) => {
   if (typeof window === "undefined") {
     return config;
   }
 
-  const token = window.localStorage.getItem(accessTokenKey);
+  const token = getAccessToken();
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -25,8 +35,33 @@ httpClient.interceptors.request.use((config) => {
 
 httpClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    if (typeof window !== "undefined" && error?.response?.status === 401) {
+  async (error) => {
+    const originalRequest = error.config as (typeof error.config & { _retry?: boolean }) | undefined;
+
+    if (
+      typeof window !== "undefined" &&
+      error?.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !isAuthEndpoint(originalRequest.url)
+    ) {
+      originalRequest._retry = true;
+
+      if (!refreshPromise) {
+        refreshPromise = refreshAuthTokens()
+          .then((data) => data?.accessToken ?? null)
+          .catch(() => null)
+          .finally(() => {
+            refreshPromise = null;
+          });
+      }
+
+      const newToken = await refreshPromise;
+      if (newToken) {
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return httpClient(originalRequest);
+      }
+
       clearAuthSession();
       if (!window.location.pathname.startsWith("/login")) {
         window.location.href = "/login";
@@ -36,3 +71,12 @@ httpClient.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export function downloadBlob(blob: Blob, filename: string) {
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  window.URL.revokeObjectURL(url);
+}

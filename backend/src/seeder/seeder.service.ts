@@ -3,6 +3,7 @@ import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { Contract, ContractDocument } from "../contracts/contract.schema";
 import { Employee, EmployeeDocument } from "../employees/employee.schema";
+import { License, LicenseDocument } from "../licenses/license.schema";
 import { Tenant, TenantDocument } from "../tenants/tenant.schema";
 import { hashPassword } from "../auth/password.util";
 import { User, UserDocument } from "../auth/user.schema";
@@ -13,6 +14,7 @@ export class SeederService implements OnModuleInit {
     @InjectModel(Tenant.name) private readonly tenantModel: Model<TenantDocument>,
     @InjectModel(Contract.name) private readonly contractModel: Model<ContractDocument>,
     @InjectModel(Employee.name) private readonly employeeModel: Model<EmployeeDocument>,
+    @InjectModel(License.name) private readonly licenseModel: Model<LicenseDocument>,
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>
   ) {}
 
@@ -31,8 +33,8 @@ export class SeederService implements OnModuleInit {
     ]);
 
     await this.contractModel.insertMany([
-      { tenantId: tenants[0]._id.toString(), code: "#CNT-2024-081", ownerName: tenants[0].ownerName, plan: "saas_subscription", status: "active", startDate: "2024-10-12", endDate: "2026-10-12", amount: 48000000 },
-      { tenantId: tenants[1]._id.toString(), code: "TF-2023-0892", ownerName: tenants[1].ownerName, plan: "franchise", status: "pending", startDate: "2023-10-27", endDate: "2025-10-27", amount: 72000000 }
+      { tenantId: tenants[0]._id.toString(), code: "#CNT-2024-081", ownerName: tenants[0].ownerName, plan: "saas_subscription", status: "active", startDate: "2024-10-12", endDate: "2026-10-12", amount: 48000000, durationMonths: 24 },
+      { tenantId: tenants[1]._id.toString(), code: "TF-2023-0892", ownerName: tenants[1].ownerName, plan: "franchise", status: "pending", startDate: "2023-10-27", endDate: "2025-10-27", amount: 72000000, durationMonths: 24 }
     ]);
 
     await this.employeeModel.insertMany([
@@ -40,6 +42,38 @@ export class SeederService implements OnModuleInit {
       { tenantId: tenants[1]._id.toString(), fullName: "Lê Hoàng Nam", email: "nam@azuretea.vn", role: "staff", department: "Support", status: "pending" }
     ]);
 
+    await this.licenseModel.insertMany([
+      {
+        tenantId: tenants[0]._id.toString(),
+        licenseKey: "LIC-EMR-2024-001",
+        plan: "premium",
+        status: "active",
+        issuedAt: "2024-10-01",
+        expiresAt: "2026-10-01",
+        maxStores: 3,
+        features: ["pos", "inventory", "analytics"]
+      },
+      {
+        tenantId: tenants[1]._id.toString(),
+        licenseKey: "LIC-AZR-2023-089",
+        plan: "enterprise",
+        status: "active",
+        issuedAt: "2023-10-01",
+        expiresAt: "2025-10-01",
+        maxStores: 10,
+        features: ["pos", "inventory", "analytics", "franchise", "api"]
+      },
+      {
+        tenantId: tenants[2]._id.toString(),
+        licenseKey: "LIC-SWP-2026-001",
+        plan: "starter",
+        status: "pending",
+        issuedAt: "2026-06-01",
+        expiresAt: "2027-06-01",
+        maxStores: 1,
+        features: ["pos"]
+      }
+    ]);
   }
 
   private async ensureAdminUser() {
@@ -53,7 +87,8 @@ export class SeederService implements OnModuleInit {
       fullName: "System Admin",
       role: "admin",
       passwordHash: hashPassword("Admin@123456"),
-      isActive: true
+      isActive: true,
+      ssoProviders: ["google", "microsoft"]
     });
   }
 }

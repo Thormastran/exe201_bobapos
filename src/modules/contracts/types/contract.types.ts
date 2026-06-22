@@ -10,6 +10,8 @@ export type ContractDto = {
   startDate: string;
   endDate: string;
   amount: number;
+  durationMonths?: number;
+  additionalTerms?: string;
   createdAt: string;
 };
 
@@ -20,6 +22,8 @@ export type CreateContractDto = {
   endDate: string;
   amount: number;
   status?: ContractStatus;
+  durationMonths?: number;
+  additionalTerms?: string;
 };
 
 export type UpdateContractDto = Partial<CreateContractDto> & {

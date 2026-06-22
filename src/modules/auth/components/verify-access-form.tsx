@@ -5,7 +5,8 @@ import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, RotateCcw } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -18,17 +19,33 @@ type VerifyAccessFormValues = z.infer<typeof verifyAccessSchema>;
 
 export function VerifyAccessForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const emailFromQuery = searchParams.get("email") ?? "";
   const setUser = useAuthStore((state) => state.setUser);
   const form = useForm<VerifyAccessFormValues>({
     resolver: zodResolver(verifyAccessSchema),
-    defaultValues: { code: "" }
+    defaultValues: { email: emailFromQuery, code: "" }
   });
+
+  useEffect(() => {
+    if (emailFromQuery) {
+      form.setValue("email", emailFromQuery);
+    }
+  }, [emailFromQuery, form]);
+
   const verify = useMutation({
     mutationFn: authApi.verifyAccess,
     onSuccess: (data) => {
       setAuthSession(data);
       setUser(data.user);
       router.push("/dashboard");
+    }
+  });
+
+  const resend = useMutation({
+    mutationFn: authApi.forgotPassword,
+    onSuccess: () => {
+      form.clearErrors("code");
     }
   });
 
@@ -50,9 +67,12 @@ export function VerifyAccessForm() {
         <div>
           <h2 className="text-2xl font-extrabold leading-tight tracking-normal text-[#111d2f]">Khôi phục quyền truy cập</h2>
           <p className="mx-auto mt-5 max-w-[330px] text-sm leading-5 text-[#555c6b]">
-            Chúng tôi đã gửi mã xác thực gồm 6 chữ số đến email của bạn. Vui lòng nhập mã bên dưới để tiếp tục.
+            Chúng tôi đã gửi mã xác thực gồm 6 chữ số đến{" "}
+            <strong>{form.watch("email") || "email của bạn"}</strong>. Vui lòng nhập mã bên dưới để tiếp tục.
           </p>
         </div>
+
+        <input type="hidden" {...form.register("email")} />
 
         <div className="mt-10">
           <label htmlFor="code" className="sr-only">
@@ -69,6 +89,9 @@ export function VerifyAccessForm() {
           {form.formState.errors.code ? (
             <p className="mt-2 text-xs font-medium text-destructive">{form.formState.errors.code.message}</p>
           ) : null}
+          {verify.isError ? (
+            <p className="mt-2 text-xs font-medium text-destructive">Mã xác thực không hợp lệ hoặc đã hết hạn.</p>
+          ) : null}
         </div>
 
         <Button className="mt-8 h-14 w-full rounded bg-primary text-sm font-bold shadow-sm" disabled={verify.isPending}>
@@ -78,6 +101,11 @@ export function VerifyAccessForm() {
         <button
           type="button"
           className="mt-3 flex h-12 w-full items-center justify-center gap-3 rounded border border-primary bg-white text-sm font-semibold text-primary hover:bg-primary/5"
+          disabled={resend.isPending || !form.watch("email")}
+          onClick={() => {
+            const email = form.getValues("email");
+            if (email) resend.mutate({ email });
+          }}
         >
           <RotateCcw className="h-4 w-4" />
           Gửi lại mã
@@ -90,17 +118,6 @@ export function VerifyAccessForm() {
           </Link>
         </div>
       </form>
-
-      <div className="mt-10 text-center text-xs text-[#8a90a0]">
-        <div className="flex flex-wrap justify-center gap-x-8 gap-y-2">
-          <span>Privacy Policy</span>
-          <span>Terms of Service</span>
-          <span>Contact Support</span>
-        </div>
-        <p className="mx-auto mt-5 max-w-[300px] leading-5">
-          This is a secure area of the TeaOps Admin suite. Your IP address is being logged for security purposes.
-        </p>
-      </div>
     </div>
   );
 }

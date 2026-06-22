@@ -24,7 +24,13 @@ export type ForgotPasswordDto = {
 };
 
 export type VerifyAccessDto = {
+  email: string;
   code: string;
+};
+
+export type SsoLoginDto = {
+  provider: "google" | "microsoft";
+  email: string;
 };
 
 export type AuthTokensDto = {

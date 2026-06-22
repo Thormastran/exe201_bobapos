@@ -5,6 +5,7 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { TenantForm } from "@/modules/tenants/components/tenant-form";
 import { useCreateTenant } from "@/modules/tenants/api/tenant.queries";
+import type { CreateTenantDto } from "@/modules/tenants/types/tenant.types";
 import { Button } from "@/components/ui/button";
 
 export default function NewOwnerPage() {
@@ -38,7 +39,7 @@ export default function NewOwnerPage() {
         cancelHref="/owners"
         submitLabel="Tạo"
         isSubmitting={createTenant.isPending}
-        onSubmit={(values) => createTenant.mutate(values, { onSuccess: () => router.push("/owners") })}
+        onSubmit={(values) => createTenant.mutate(values as CreateTenantDto, { onSuccess: () => router.push("/owners") })}
       />
     </div>
   );

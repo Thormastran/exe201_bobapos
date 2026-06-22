@@ -3,6 +3,24 @@ import { HydratedDocument } from "mongoose";
 
 export type UserDocument = HydratedDocument<User>;
 
+@Schema({ _id: false })
+export class PasskeyCredential {
+  @Prop({ required: true })
+  credentialId: string;
+
+  @Prop({ required: true })
+  publicKey: string;
+
+  @Prop({ required: true, default: 0 })
+  counter: number;
+
+  @Prop()
+  deviceName?: string;
+
+  @Prop({ type: [String], default: [] })
+  transports?: string[];
+}
+
 @Schema({ timestamps: true })
 export class User {
   @Prop({ required: true, unique: true, lowercase: true, trim: true })
@@ -22,6 +40,18 @@ export class User {
 
   @Prop({ required: true, default: true })
   isActive: boolean;
+
+  @Prop()
+  resetCode?: string;
+
+  @Prop()
+  resetCodeExpiresAt?: Date;
+
+  @Prop({ type: [PasskeyCredential], default: [] })
+  passkeys: PasskeyCredential[];
+
+  @Prop({ type: [String], default: [] })
+  ssoProviders: string[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

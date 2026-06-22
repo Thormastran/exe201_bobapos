@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Mail, ShieldCheck } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
@@ -13,18 +14,24 @@ import { forgotPasswordSchema } from "@/modules/auth/schemas/auth.schema";
 type ForgotPasswordFormValues = z.infer<typeof forgotPasswordSchema>;
 
 export function ForgotPasswordForm() {
+  const router = useRouter();
   const form = useForm<ForgotPasswordFormValues>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: { email: "" }
   });
-  const forgotPassword = useMutation({ mutationFn: authApi.forgotPassword });
+  const forgotPassword = useMutation({
+    mutationFn: authApi.forgotPassword,
+    onSuccess: (_data, variables) => {
+      router.push(`/verify-access?email=${encodeURIComponent(variables.email)}`);
+    }
+  });
 
   return (
     <form className="w-full max-w-[430px]" onSubmit={form.handleSubmit((values) => forgotPassword.mutate(values))}>
       <div className="mb-8">
         <h2 className="text-2xl font-extrabold leading-tight tracking-normal text-[#111d2f]">Khôi phục đăng nhập</h2>
         <p className="mt-3 max-w-[310px] text-sm leading-5 text-[#555c6b]">
-          Nhập địa chỉ email công việc của bạn để nhận liên kết đặt lại mật khẩu.
+          Nhập địa chỉ email công việc của bạn để nhận mã xác thực 6 chữ số.
         </p>
       </div>
 
@@ -48,7 +55,7 @@ export function ForgotPasswordForm() {
       </div>
 
       <Button className="mt-10 h-14 w-full rounded bg-primary text-sm font-bold uppercase shadow-[0_10px_18px_rgba(47,128,237,0.24)]" disabled={forgotPassword.isPending}>
-        Gửi liên kết
+        Gửi mã xác thực
         <ArrowRight className="h-4 w-4" />
       </Button>
 
@@ -66,16 +73,10 @@ export function ForgotPasswordForm() {
             <div>
               <p className="text-[10px] font-extrabold uppercase tracking-normal text-[#4f5564]">Security protocol</p>
               <p className="mt-2 text-xs leading-5 text-[#7a8293]">
-                Các liên kết khôi phục sẽ hết hạn sau 24 giờ. Vui lòng liên hệ với quản trị viên CNTT của bạn nếu không
-                thể truy cập vào hộp thư công việc của mình.
+                Mã xác thực sẽ hết hạn sau 15 phút. Vui lòng liên hệ quản trị viên nếu không thể truy cập email.
               </p>
             </div>
           </div>
-        </div>
-        <div className="mt-7 flex flex-wrap items-center justify-between gap-4 text-[10px] font-bold uppercase tracking-[0.14em] text-[#8a90a0]">
-          <span>© 2026 BobaPos Inc.</span>
-          <span>Security Policy</span>
-          <span>Help Center</span>
         </div>
       </div>
     </form>

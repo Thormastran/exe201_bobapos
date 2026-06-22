@@ -37,8 +37,22 @@ Authentication endpoints:
 ```text
 POST /api/auth/login
 POST /api/auth/register
+POST /api/auth/refresh
+POST /api/auth/sso
+POST /api/auth/passkey/login-options
+POST /api/auth/passkey/login
+POST /api/auth/passkey/register-options
+POST /api/auth/passkey/register
 GET  /api/auth/me
 POST /api/auth/logout
+```
+
+Other endpoints:
+
+```text
+GET  /api/search?q=
+GET  /api/contracts/:id/pdf
+GET  /api/licenses
 ```
 
 Protected endpoints require:

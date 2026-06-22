@@ -2,7 +2,7 @@ import { httpClient } from "@/lib/api/http-client";
 import type { PaginatedResponseDto, QueryParamsDto } from "@/types/api";
 
 export class RestClient<TEntity, TCreateDto, TUpdateDto> {
-  constructor(private readonly resourcePath: string) {}
+  constructor(protected readonly resourcePath: string) {}
 
   findAll(params?: QueryParamsDto) {
     return httpClient

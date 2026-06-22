@@ -29,6 +29,12 @@ export class Contract {
 
   @Prop({ required: true })
   amount: number;
+
+  @Prop()
+  durationMonths?: number;
+
+  @Prop()
+  additionalTerms?: string;
 }
 
 export const ContractSchema = SchemaFactory.createForClass(Contract);

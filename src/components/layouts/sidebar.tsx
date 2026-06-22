@@ -7,6 +7,7 @@ import {
   BarChart3,
   ClipboardList,
   FileText,
+  KeyRound,
   LifeBuoy,
   Settings,
   ShieldCheck,
@@ -23,6 +24,7 @@ const navItems = [
   { href: "/tenants", label: "Stores", icon: Store },
   { href: "/employees", label: "Employees", icon: Users },
   { href: "/contracts", label: "Contracts", icon: FileText },
+  { href: "/licenses", label: "Licenses", icon: KeyRound },
   { href: "/subscription-plans", label: "Subscription Plans", icon: ClipboardList },
 
   { href: "/settings", label: "Settings", icon: Settings }

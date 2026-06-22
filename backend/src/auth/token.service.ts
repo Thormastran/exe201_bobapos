@@ -2,12 +2,15 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { Injectable, UnauthorizedException } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 
+export type TokenType = "access" | "refresh";
+
 export type JwtPayload = {
   sub: string;
   email: string;
   fullName: string;
   role: string;
   tenantId?: string;
+  tokenType?: TokenType;
   exp: number;
 };
 
@@ -24,9 +27,9 @@ function base64UrlDecode<T>(value: string): T {
 export class TokenService {
   constructor(private readonly config: ConfigService) {}
 
-  sign(payload: Omit<JwtPayload, "exp">, expiresInSeconds: number) {
+  sign(payload: Omit<JwtPayload, "exp">, expiresInSeconds: number, tokenType: TokenType = "access") {
     const header = { alg: "HS256", typ: "JWT" };
-    const body = { ...payload, exp: Math.floor(Date.now() / 1000) + expiresInSeconds };
+    const body = { ...payload, tokenType, exp: Math.floor(Date.now() / 1000) + expiresInSeconds };
     const encodedHeader = base64UrlEncode(header);
     const encodedPayload = base64UrlEncode(body);
     const signature = this.signData(`${encodedHeader}.${encodedPayload}`);
@@ -34,7 +37,7 @@ export class TokenService {
     return `${encodedHeader}.${encodedPayload}.${signature}`;
   }
 
-  verify(token: string): JwtPayload {
+  verify(token: string, expectedType?: TokenType): JwtPayload {
     const [encodedHeader, encodedPayload, signature] = token.split(".");
     if (!encodedHeader || !encodedPayload || !signature) {
       throw new UnauthorizedException("Invalid token");
@@ -51,6 +54,10 @@ export class TokenService {
     const payload = base64UrlDecode<JwtPayload>(encodedPayload);
     if (payload.exp < Math.floor(Date.now() / 1000)) {
       throw new UnauthorizedException("Token expired");
+    }
+
+    if (expectedType && payload.tokenType && payload.tokenType !== expectedType) {
+      throw new UnauthorizedException(`Expected ${expectedType} token`);
     }
 
     return payload;

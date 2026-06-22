@@ -28,7 +28,11 @@ export default function NewContractPage() {
       <ContractForm
         formId="contract-create-form"
         isSubmitting={createContract.isPending}
-        onSubmit={(values) => createContract.mutate(values, { onSuccess: () => router.push("/contracts/success") })}
+        onSubmit={(values) =>
+          createContract.mutate(values, {
+            onSuccess: (contract) => router.push(`/contracts/success?id=${contract.id}`)
+          })
+        }
       />
     </div>
   );

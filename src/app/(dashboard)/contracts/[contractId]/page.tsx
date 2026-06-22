@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/common/confirm-dialog";
 import { StatusBadge } from "@/components/common/status-badge";
 import { useContract, useDeleteContract } from "@/modules/contracts/api/contract.queries";
+import { contractApi } from "@/modules/contracts/api/contract.api";
 
 function formatAmount(amount?: number) {
   return new Intl.NumberFormat("vi-VN").format(amount ?? 48000000);
@@ -17,6 +18,7 @@ export default function ContractDetailPage() {
   const params = useParams<{ contractId: string }>();
   const router = useRouter();
   const [deleteOpen, setDeleteOpen] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState(false);
   const contract = useContract(params.contractId);
   const deleteContract = useDeleteContract();
   const data = contract.data;
@@ -121,7 +123,7 @@ export default function ContractDetailPage() {
               </div>
               <div>
                 <p className="text-[11px] font-bold uppercase text-slate-500">Thời hạn</p>
-                <p className="mt-1 font-bold">24 Months</p>
+                <p className="mt-1 font-bold">{data?.durationMonths ? `${data.durationMonths} tháng` : "—"}</p>
               </div>
               <div>
                 <p className="text-[11px] font-bold uppercase text-slate-500">Gói dịch vụ</p>
@@ -135,12 +137,30 @@ export default function ContractDetailPage() {
                 <p className="text-[11px] font-bold uppercase text-slate-500">Giá trị</p>
                 <p className="mt-1 font-extrabold">{formatAmount(data?.amount)} VNĐ</p>
               </div>
+              {data?.additionalTerms ? (
+                <div>
+                  <p className="text-[11px] font-bold uppercase text-slate-500">Điều khoản bổ sung</p>
+                  <p className="mt-1 whitespace-pre-wrap text-slate-600 dark:text-slate-300">{data.additionalTerms}</p>
+                </div>
+              ) : null}
             </div>
           </div>
 
-          <Button className="h-12 w-full justify-start rounded-lg">
+          <Button
+            className="h-12 w-full justify-start rounded-lg"
+            disabled={!data || downloadingPdf}
+            onClick={async () => {
+              if (!data) return;
+              setDownloadingPdf(true);
+              try {
+                await contractApi.downloadPdf(data.id, `${data.code}.pdf`);
+              } finally {
+                setDownloadingPdf(false);
+              }
+            }}
+          >
             <Download className="h-4 w-4" />
-            Tải xuống (PDF)
+            {downloadingPdf ? "Đang tải PDF..." : "Tải xuống (PDF)"}
           </Button>
           <Button className="h-12 w-full justify-start rounded-lg">
             <FileText className="h-4 w-4" />

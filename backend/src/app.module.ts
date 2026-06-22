@@ -7,6 +7,8 @@ import { AuthGuard } from "./auth/auth.guard";
 import { ContractsModule } from "./contracts/contracts.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { EmployeesModule } from "./employees/employees.module";
+import { LicensesModule } from "./licenses/licenses.module";
+import { SearchModule } from "./search/search.module";
 import { SeederModule } from "./seeder/seeder.module";
 import { SettingsModule } from "./settings/settings.module";
 import { SubscriptionPlansModule } from "./subscription-plans/subscription-plans.module";
@@ -28,6 +30,8 @@ import { TenantsModule } from "./tenants/tenants.module";
     SettingsModule,
     SubscriptionPlansModule,
     DashboardModule,
+    LicensesModule,
+    SearchModule,
     SeederModule
   ],
   providers: [

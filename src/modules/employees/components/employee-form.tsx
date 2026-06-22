@@ -7,6 +7,7 @@ import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { FormInput } from "@/components/forms/form-input";
 import { FormSelect } from "@/components/forms/form-select";
+import { useTenants } from "@/modules/tenants/api/tenant.queries";
 import { employeeSchema } from "@/modules/employees/schemas/employee.schema";
 import type { EmployeeStatus } from "@/modules/employees/types/employee.types";
 
@@ -39,6 +40,13 @@ export function EmployeeForm({
   showStatusField?: boolean;
   formId?: string;
 }) {
+  const tenants = useTenants({ page: 1, limit: 100, search: "", filters: {} });
+  const tenantOptions =
+    tenants.data?.data.map((tenant) => ({
+      label: `${tenant.ownerName} - ${tenant.name}`,
+      value: tenant.id
+    })) ?? [];
+
   const form = useForm<EmployeeFormValues>({
     resolver: zodResolver(employeeSchema),
     defaultValues: {
@@ -66,7 +74,13 @@ export function EmployeeForm({
 
   return (
     <form id={formId} className="grid max-w-3xl gap-5 rounded-lg border bg-white p-6" onSubmit={form.handleSubmit(onSubmit)}>
-      <FormInput name="tenantId" label="Tenant ID" register={form.register} error={form.formState.errors.tenantId?.message} />
+      <FormSelect
+        name="tenantId"
+        label="Cửa hàng / Owner"
+        register={form.register}
+        error={form.formState.errors.tenantId?.message}
+        options={tenantOptions}
+      />
       <FormInput name="fullName" label="Full name" register={form.register} error={form.formState.errors.fullName?.message} />
       <FormInput name="email" label="Email" register={form.register} error={form.formState.errors.email?.message} />
       <FormSelect
