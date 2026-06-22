@@ -7,6 +7,7 @@ import { AuthGuard } from "./auth/auth.guard";
 import { ContractsModule } from "./contracts/contracts.module";
 import { DashboardModule } from "./dashboard/dashboard.module";
 import { EmployeesModule } from "./employees/employees.module";
+import { HealthController } from "./health.controller";
 import { LicensesModule } from "./licenses/licenses.module";
 import { SearchModule } from "./search/search.module";
 import { SeederModule } from "./seeder/seeder.module";
@@ -34,6 +35,7 @@ import { TenantsModule } from "./tenants/tenants.module";
     SearchModule,
     SeederModule
   ],
+  controllers: [HealthController],
   providers: [
     {
       provide: APP_GUARD,

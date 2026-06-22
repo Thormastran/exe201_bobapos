@@ -36,7 +36,11 @@ export class TenantsService {
 
   async create(payload: Record<string, unknown>) {
     const { initialPassword, ...tenantData } = payload;
-    const tenant = await this.tenantModel.create({ status: "pending", ...tenantData });
+    const tenant = await this.tenantModel.create({
+      status: "pending",
+      ...tenantData,
+      slug: await this.createUniqueSlug(String(tenantData.name ?? "tenant"))
+    });
 
     if (tenant.ownerEmail && typeof initialPassword === "string" && initialPassword.length >= 8) {
       const email = tenant.ownerEmail.toLowerCase();
@@ -60,6 +64,12 @@ export class TenantsService {
 
   async update(id: string, payload: Record<string, unknown>) {
     const { initialPassword: _ignored, ...tenantData } = payload;
+    if (tenantData.name && !tenantData.slug) {
+      const currentTenant = await this.tenantModel.findById(id).exec();
+      if (currentTenant && currentTenant.name !== tenantData.name) {
+        tenantData.slug = await this.createUniqueSlug(String(tenantData.name), id);
+      }
+    }
     const tenant = await this.tenantModel
       .findByIdAndUpdate(id, tenantData, { new: true, runValidators: true })
       .exec();
@@ -71,5 +81,32 @@ export class TenantsService {
 
   async remove(id: string) {
     await this.tenantModel.findByIdAndDelete(id).exec();
+  }
+
+  private async createUniqueSlug(name: string, excludedId?: string) {
+    const baseSlug =
+      name
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase()
+        .replace(/đ/g, "d")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "") || "tenant";
+    let slug = baseSlug;
+    let suffix = 2;
+
+    while (
+      await this.tenantModel
+        .exists({
+          slug,
+          ...(excludedId ? { _id: { $ne: excludedId } } : {})
+        })
+        .exec()
+    ) {
+      slug = `${baseSlug}-${suffix}`;
+      suffix += 1;
+    }
+
+    return slug;
   }
 }

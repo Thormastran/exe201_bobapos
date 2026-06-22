@@ -23,14 +23,34 @@ MongoDB Compass connection string:
 mongodb://127.0.0.1:27017/exe201
 ```
 
-The app seeds sample tenants, contracts, licenses, and employees when the database is empty.
+The app upserts a complete test dataset whenever the backend starts. Existing custom records
+are preserved, while seeded records are updated by stable keys.
 
-Default admin login:
+Test accounts:
 
 ```text
-Email: admin@teaflow.io
-Password: Admin@123456
+System admin:       admin@teaflow.io / Admin@123456
+Active owner:       owner.emerald@teaflow.test / Test@123456
+Enterprise owner:   owner.azure@teaflow.test / Test@123456
+Manager:            manager@teaflow.test / Test@123456
+Inactive user:      inactive@teaflow.test / Test@123456 (login must fail)
+Password reset QA:  reset@teaflow.test / Test@123456
+Verification code:  123456
 ```
+
+Seed coverage:
+
+- 4 subscription plans, including an inactive legacy plan
+- 8 tenants across active, pending, inactive, and suspended states
+- Owner users for every tenant, plus admin, manager, inactive, and password-reset accounts
+- 12 employees across admin, manager, and staff roles and every employee state
+- 8 contracts across active, pending, completed, and expired states
+- Contracts expiring within 10 and 20 days for dashboard alert testing
+- 8 licenses across active, pending, expired, and suspended states
+- Historical creation dates for dashboard trends, revenue, pagination, filters, and global search
+
+Seeded users are only assigned their documented password when first created. Restarting the
+backend does not overwrite passwords changed through the application.
 
 Authentication endpoints:
 

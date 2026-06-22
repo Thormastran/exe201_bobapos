@@ -165,8 +165,9 @@ export class DashboardService {
     return date.toISOString().slice(0, 10);
   }
 
-  private toTitle(value: string) {
-    return value
+  private toTitle(value: unknown) {
+    const normalized = typeof value === "string" && value.trim() ? value : "unknown";
+    return normalized
       .split("_")
       .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
       .join(" ");

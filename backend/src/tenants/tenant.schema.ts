@@ -9,6 +9,9 @@ export class Tenant {
   @Prop({ required: true, trim: true })
   name: string;
 
+  @Prop({ required: true, trim: true, lowercase: true, unique: true })
+  slug: string;
+
   @Prop({ required: true, trim: true })
   ownerName: string;
 
