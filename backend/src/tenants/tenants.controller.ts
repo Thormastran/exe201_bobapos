@@ -1,5 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query } from "@nestjs/common";
-import { QueryParams } from "../common/types";
+import type { QueryParams } from "../common/types";
 import { TenantsService } from "./tenants.service";
 
 @Controller("tenants")

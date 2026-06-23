@@ -1,6 +1,6 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Res } from "@nestjs/common";
 import type { Response } from "express";
-import { QueryParams } from "../common/types";
+import type { QueryParams } from "../common/types";
 import { ContractsPdfService } from "./contracts-pdf.service";
 import { ContractsService } from "./contracts.service";
 

@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from "@nestjs/common";
 import { InjectModel } from "@nestjs/mongoose";
 import { Model } from "mongoose";
 import { paginate, toDto } from "../common/mongo";
-import { QueryParams } from "../common/types";
+import type { QueryParams } from "../common/types";
 import { Employee, EmployeeDocument } from "./employee.schema";
 
 @Injectable()
