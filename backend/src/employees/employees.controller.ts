@@ -4,7 +4,7 @@ import { EmployeesService } from "./employees.service";
 
 @Controller("employees")
 export class EmployeesController {
-  constructor(private readonly employeesService: EmployeesService) {}
+  constructor(private readonly employeesService: EmployeesService) { }
 
   @Get()
   findAll(@Query() query: QueryParams) {
