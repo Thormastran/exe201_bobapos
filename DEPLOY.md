@@ -41,14 +41,28 @@ https://<render-domain>/api/health
 1. Import cùng GitHub repository `exe201_bobas` vào Vercel.
 2. Giữ **Root Directory** là thư mục gốc của repository.
 3. Framework Preset: **Next.js**.
-4. Thêm biến môi trường cho Production, Preview và Development:
+4. Thêm biến môi trường cho **Production** (và Preview nếu cần):
+
+**Cách 1 — khuyên dùng (proxy, tránh lỗi CORS):**
+
+```text
+API_PROXY_TARGET=https://<render-domain>/api
+NEXT_PUBLIC_APP_NAME=TeaFlow BobaPOS
+```
+
+Frontend trên Vercel sẽ gọi `/api/...` (cùng domain), Next.js rewrite sang backend Render.
+
+**Cách 2 — gọi thẳng backend:**
 
 ```text
 NEXT_PUBLIC_API_BASE_URL=https://<render-domain>/api
 NEXT_PUBLIC_APP_NAME=TeaFlow BobaPOS
 ```
 
-5. Deploy lại frontend sau khi cập nhật biến môi trường.
+5. **Redeploy** frontend sau khi thêm/sửa biến môi trường (bắt buộc — Next.js embed env lúc build).
+
+> Lỗi thường gặp: `POST http://localhost:4000/api/auth/login net::ERR_CONNECTION_REFUSED`  
+> Nguyên nhân: chưa set `API_PROXY_TARGET` hoặc `NEXT_PUBLIC_API_BASE_URL` trên Vercel.
 
 ## 4. Đồng bộ domain cuối cùng
 
