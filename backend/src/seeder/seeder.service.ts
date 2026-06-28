@@ -13,6 +13,20 @@ import {
 import { Tenant, TenantDocument } from "../tenants/tenant.schema";
 
 const TEST_PASSWORD = "Test@123456";
+const DEMO_PASSWORD = "12345678";
+
+const DEMO_USERS = [
+  { email: "user1@teaflow.test", fullName: "Nguyen Van A", role: "admin" },
+  { email: "user2@teaflow.test", fullName: "Tran Thi B", role: "super_admin" },
+  { email: "user3@teaflow.test", fullName: "Le Van C", role: "manager" },
+  { email: "user4@teaflow.test", fullName: "Pham Thi D", role: "manager" },
+  { email: "user5@teaflow.test", fullName: "Hoang Van E", role: "staff" },
+  { email: "user6@teaflow.test", fullName: "Vo Thi F", role: "staff" },
+  { email: "user7@teaflow.test", fullName: "Dang Van G", role: "staff" },
+  { email: "user8@teaflow.test", fullName: "Bui Thi H", role: "staff" },
+  { email: "user9@teaflow.test", fullName: "Do Van I", role: "staff" },
+  { email: "user10@teaflow.test", fullName: "Ngo Thi K", role: "staff" }
+];
 
 @Injectable()
 export class SeederService implements OnModuleInit {
@@ -307,7 +321,14 @@ export class SeederService implements OnModuleInit {
         resetCodeExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         ssoProviders: [],
         seedPassword: TEST_PASSWORD
-      }
+      },
+      ...DEMO_USERS.map((user, index) => ({
+        ...user,
+        tenantId: this.tenantId(tenants, "owner.emerald@teaflow.test"),
+        isActive: true,
+        ssoProviders: index % 2 === 0 ? ["google"] : [],
+        seedPassword: DEMO_PASSWORD
+      }))
     ];
 
     await Promise.all(
